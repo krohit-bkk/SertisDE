@@ -2,31 +2,78 @@ version: '3.9'
 services:
   spark:
     image: 'docker.io/bitnami/spark:3.1.2'
+    container_name: spark
+    # volumes:
+    #   - type: bind
+    #     source: ./data
+    #     target: /opt/data
+    #   - type: bind
+    #     source: ./postgresql-42.5.2.jar 
+    #     target: /opt/bitnami/spark/jars
     volumes:
-      - type: bind
-        source: ./data
-        target: /opt/data
+      - ./data:/opt/data
+      - ./postgresql-42.5.2.jar:/opt/bitnami/spark/jars/postgresql-42.5.2.jar
     environment:
       - SPARK_MODE=master
       - SPARK_RPC_AUTHENTICATION_ENABLED=no
       - SPARK_RPC_ENCRYPTION_ENABLED=no
       - SPARK_LOCAL_STORAGE_ENCRYPTION_ENABLED=no
       - SPARK_SSL_ENABLED=no
+      - SPARK_MASTER_MEMORY=3g
     ports:
       - '7077:7077'
       - '18080:8080'
+    networks:
+      - my_network
+
   spark-worker-1:
     image: docker.io/bitnami/spark:3.1.2
+    container_name: spark-worker-1
+    # volumes:
+    #   - type: bind
+    #     source: ./data
+    #     target: /opt/data
     volumes:
-      - type: bind
-        source: ./data
-        target: /opt/data
+      - ./data:/opt/data
+      - ./postgresql-42.5.2.jar:/opt/bitnami/spark/jars/postgresql-42.5.2.jar
     environment:
       - SPARK_MODE=worker
       - SPARK_MASTER_URL=spark://spark:7077
-      - SPARK_WORKER_MEMORY=1G
+      - SPARK_WORKER_MEMORY=3G
       - SPARK_WORKER_CORES=1
       - SPARK_RPC_AUTHENTICATION_ENABLED=no
       - SPARK_RPC_ENCRYPTION_ENABLED=no
       - SPARK_LOCAL_STORAGE_ENCRYPTION_ENABLED=no
       - SPARK_SSL_ENABLED=no
+    networks:
+      - my_network
+
+  postgres-db:
+    image: postgres:13
+    container_name: postgres-db
+    environment:
+      - POSTGRES_USER=sertis
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=prod_db
+      - POSTGRES_INITDB_ARGS=--auth-host=md5
+    ports:
+      - "5432:5432"
+    networks:
+      - my_network
+
+  etl:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: etl
+    environment:
+      - PYTHONUNBUFFERED=1
+    volumes:
+      - ./data:/opt/data
+      - ./postgresql-42.5.2.jar:/opt/bitnami/spark/jars/postgresql-42.5.2.jar
+    networks:
+      - my_network
+
+networks:
+  my_network:
+    external: true
