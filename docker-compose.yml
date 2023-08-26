@@ -5,7 +5,6 @@ services:
     container_name: spark
     volumes:
       - ./data:/opt/data
-      - ./postgresql-42.5.2.jar:/opt/bitnami/spark/jars/postgresql-42.5.2.jar
     environment:
       - SPARK_MODE=master
       - SPARK_RPC_AUTHENTICATION_ENABLED=no
@@ -24,7 +23,6 @@ services:
     container_name: spark-worker-1
     volumes:
       - ./data:/opt/data
-      - ./postgresql-42.5.2.jar:/opt/bitnami/spark/jars/postgresql-42.5.2.jar
     environment:
       - SPARK_MODE=worker
       - SPARK_MASTER_URL=spark://spark:7077
@@ -58,11 +56,11 @@ services:
     environment:
       - PYTHONUNBUFFERED=1
     volumes:
-      - ./data:/opt/data
-      - ./postgresql-42.5.2.jar:/opt/bitnami/spark/jars/postgresql-42.5.2.jar
+      - ./postgresql-42.5.2.jar:/opt/postgresql-42.5.2.jar
     networks:
       - my_network
 
 networks:
   my_network:
     external: true
+ 

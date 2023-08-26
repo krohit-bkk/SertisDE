@@ -3,7 +3,13 @@
 docker network create my_network
 
 # Start Spark (master, worker) & PostgreSQL
-docker compose down --rmi all && docker compose up -d spark spark-worker-1 postgres-db
+docker compose down --rmi all &&  docker compose up -d spark spark-worker-1 postgres-db
+
+RUN curl https://repo1.maven.org/maven2/com/amazonaws/aws-java-sdk-bundle/1.11.704/aws-java-sdk-bundle-1.11.704.jar --output /opt/bitnami/spark/jars/aws-java-sdk-bundle-1.11.704.jar
+
+docker exec -it spark ls /opt/bitnami/spark/jars/postgresql-42.5.2.jar
+docker exec -it spark-worker-1 ls /opt/bitnami/spark/jars/postgresql-42.5.2.jar
+docker exec -it etl /opt/bitnami/spark/jars/postgresql-42.5.2.jar
 
 docker rm $(docker ps -a -q --filter "name=sertisetl-etl-run") && docker image rm --force sertisetl-etl
 docker compose down --rmi all
@@ -57,7 +63,7 @@ def get_spark_session():
   spark = SparkSession.builder \
           .master('spark://spark:7077') \
           .appName("Sertis ETL") \
-          .config("spark.jars", "/opt/bitnami/spark/jars/postgresql-42.5.2.jar") \
+          .config("spark.jars", "/opt/postgresql-42.5.2.jar") \
           .getOrCreate()
   
   spark.sparkContext.setLogLevel("WARN")
@@ -109,7 +115,7 @@ def write_to_postgres(df, db_name, table_name, mode):
 # Get favourite_product
 def get_favourite_product(df):
   # Create ranked_products DataFrame
-  # total_cust_prod_sold = UnitsSold per CustId per ProductSold
+  # total_cust_prod_sold := UnitsSold per CustId per ProductSold
   window_spec_cust_prod = Window().partitionBy("custId", "productSold").orderBy()
   ranked_products = df.withColumn(
       "custId",
@@ -123,7 +129,7 @@ def get_favourite_product(df):
     )
 
   # Create cust_prod_rank DataFrame
-  # rnk = Basis per ProductSold per CustId
+  # rnk := Basis per ProductSold per CustId
   window_spec_cust = Window().partitionBy("custId").orderBy(col("total_cust_prod_sold").desc())
   cust_prod_rank = ranked_products.select(
       "custId", 
@@ -144,7 +150,7 @@ def get_favourite_product(df):
       col("rnk") == 1
     ).withColumnRenamed(
       "productSold",
-      "favourite_product"
+      "favorite_product"
     )
 
   return result_df
@@ -156,16 +162,13 @@ def get_longest_streak(df):
   ranked_data = df.select(
       col("custId").cast("string"), 
       col("transactionDate").cast("date")
-    ).dropDuplicates(
-    ).withColumn(
+    ).dropDuplicates().withColumn(
       "dateDiff", 
       datediff(col("transactionDate"), lit("1990-01-01"))
     ).withColumn(
       "DateDifferenceGroup", 
       col("dateDiff") - row_number().over(window_spec_cust)
     )
-  
-  # ranked_data.filter(col("custId") == "23262").show(40, False)
   
   streak_data = ranked_data.groupBy(
       "custId", 
@@ -175,7 +178,6 @@ def get_longest_streak(df):
     ).groupBy("custId").agg(
       max(col("streaks")).alias("longest_streak")
     )
-  # streak_data.filter(col("custId") == "23262").show(40, False)
   return streak_data
 
 # Wrapper method to encapsulate ETL
@@ -184,24 +186,15 @@ def process_etl(source_path, database_name, table_name, mode):
   spark: SparkSession = get_spark_session()
   
   # Read the input file
-  # df = spark.read.csv('data/transaction.csv', sep='|', header=True, inferSchema=True)
-  df1 = spark.read.csv(source_path, sep='|', header=True, inferSchema=True)
-  # df1.show()
+  df = spark.read.csv(source_path, sep='|', header=True, inferSchema=True)
+  # df.show()
   
   # Write to PostgreSQL
-  write_to_postgres(df1, database_name, table_name, mode)
+  write_to_postgres(df, database_name, table_name, mode)
   print(f">>>> Dataframe written [SaveMode: {mode}] successfully to PostgreSQL!\n")
-
-  # print(f"\n\n>>>> Attempting to read from PostgreSQL...\n")
-  # df2 = read_from_postgres(database_name, table_name)
-  # df2.show()
-  # print(f">>>> Dataframe read successfully from PostgreSQL!\n")
-
-  favourite_product_df = get_favourite_product(df1)
-  longest_streak_df = get_longest_streak(df1)
-
-  # favourite_product_df.show()
-  # longest_streak_df.show()
+  
+  favourite_product_df = get_favourite_product(df)
+  longest_streak_df = get_longest_streak(df)
 
   final_df = favourite_product_df.join(
      longest_streak_df,
@@ -218,20 +211,19 @@ def process_etl(source_path, database_name, table_name, mode):
   final_df.orderBy(col("longest_streak").desc()).show(50, False)
 
   # Unit testing - kind of...
-  cust_record=final_df.filter(col("customer_id") == "0023938").select("favourite_product", "longest_streak").limit(1).collect()
-  favorite_product=cust_record[0][0]
-  longest_streak=cust_record[0][1]
+  cust_rec=final_df.filter(col("customer_id") == "0023938").select("favorite_product", "longest_streak").limit(1).collect()
+  favourite_product=cust_rec[0][0]
+  longest_streak=cust_rec[0][1]
 
-  assert favorite_product == "PURA250", f"Favorite product is PURA250; found[{favorite_product}]"
-  print("\n>>>> Favorite Product is VALID!\n")
+  assert favourite_product == "PURA250", f"Favorite product is PURA250; found[{favourite_product}]"
+  print("\n>>>> Favorite Product is VALID!")
 
   assert longest_streak == 2, f"Longest streak is 2; found[{longest_streak}]"
   print("\n>>>> Streak is VALID!")
 
+  # Write ETL output to PostreSQL
   write_to_postgres(final_df, database_name, "customers", mode)
 
-  close_spark_session()
-  print("\n\n>>>> ETL SUCCESSFUL!\n")
 
 def main():
     parser = argparse.ArgumentParser(description="Process data.")
@@ -261,8 +253,14 @@ def main():
     print(f">>>> Table: {table_name}")
     print(f">>>> Save mode: {save_mode} {msg}\n")
     
-    # Process ETL
-    process_etl(source_path, database_name, table_name, save_mode)
+    try: 
+      # Process ETL
+      process_etl(source_path, database_name, table_name, save_mode)
+      print("\n\n>>>> ETL SUCCESSFUL!\n")
+
+    finally:
+      close_spark_session()
+
 
 if __name__ == "__main__":
     main()
