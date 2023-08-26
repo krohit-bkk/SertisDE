@@ -61,10 +61,10 @@ def get_postgres_properties():
 # Create or Get SparkSession
 def get_spark_session():
   spark = SparkSession.builder \
-          .master('spark://spark:7077') \
-          .appName("Sertis ETL") \
-          .config("spark.jars", "/opt/postgresql-42.5.2.jar") \
-          .getOrCreate()
+    .master('spark://spark:7077') \
+    .appName("Sertis ETL") \
+    .config("spark.jars", "/opt/postgresql-42.5.2.jar") \
+    .getOrCreate()
   
   spark.sparkContext.setLogLevel("WARN")
   return spark 
@@ -84,13 +84,13 @@ def read_from_postgres(db_name, table_name):
   # Read data from PostgreSQL table into a DataFrame
   spark = get_spark_session()
   df = spark.read \
-  .format("jdbc") \
-  .option("url", database_url) \
-  .option("driver", "org.postgresql.Driver") \
-  .option("dbtable", f"{table_name}") \
-  .option("user", "sertis") \
-  .option("password", "password") \
-  .load()
+    .format("jdbc") \
+    .option("url", database_url) \
+    .option("driver", "org.postgresql.Driver") \
+    .option("dbtable", f"{table_name}") \
+    .option("user", "sertis") \
+    .option("password", "password") \
+    .load()
   return df
 
 
@@ -102,14 +102,14 @@ def write_to_postgres(df, db_name, table_name, mode):
   
   # Write DataFrame to PostgreSQL table
   df.write \
-      .mode(mode) \
-      .format("jdbc") \
-      .option("url", database_url) \
-      .option("driver", "org.postgresql.Driver") \
-      .option("dbtable", f"{table_name}") \
-      .option("user", "sertis") \
-      .option("password", "password") \
-      .save()
+    .mode(mode) \
+    .format("jdbc") \
+    .option("url", database_url) \
+    .option("driver", "org.postgresql.Driver") \
+    .option("dbtable", f"{table_name}") \
+    .option("user", "sertis") \
+    .option("password", "password") \
+    .save()
 
 
 # Get favourite_product
@@ -259,6 +259,7 @@ def main():
       print("\n\n>>>> ETL SUCCESSFUL!\n")
 
     finally:
+      # Close SparkSession if still open
       close_spark_session()
 
 
