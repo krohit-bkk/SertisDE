@@ -56,7 +56,7 @@ services:
     environment:
       - PYTHONUNBUFFERED=1
     volumes:
-      - ./postgresql-42.5.2.jar:/opt/bitnami/spark/jars/postgresql-42.5.2.jar
+      - ./postgresql-42.5.2.jar:/opt/postgresql-42.5.2.jar
     networks:
       - my_network
 
