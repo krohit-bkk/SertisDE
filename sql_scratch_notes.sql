@@ -1,32 +1,46 @@
-with sorted_data AS (
-  SELECT custId, transactionDate FROM sample_data GROUP BY custId, transactionDate
+-- Longest streak for Customer_Id
+-- ==============================
+WITH transaction1 AS (
+  SELECT DISTINCT
+    "custId",
+    CAST("transactionDate" AS DATE) AS "transactionDate",
+    CAST('1990-01-01' AS DATE) AS "referenceDate",
+    CAST("transactionDate" AS DATE) - CAST('1990-01-01' AS DATE) AS "DateDifference"
+  FROM 
+    "transaction"
 ),
-ranked_data AS (
+date_diff_group AS (
   SELECT
-    custId,
-    transactionDate,
-    ROW_NUMBER() OVER (PARTITION BY custId ORDER BY transactionDate) as rnk,
-    ROW_NUMBER() OVER (PARTITION BY custId ORDER BY transactionDate) - transactionDate AS group_transactionDate
-  FROM sorted_data
-)
-
-SELECT 
-  custId,
-  MAX(grp_cnt) AS max_occurrance
-FROM (
+    *,
+    "DateDifference" - ROW_NUMBER() OVER(PARTITION BY "custId" ORDER BY "DateDifference") AS "DateDifferenceGroup"
+  FROM "transaction1"
+  ORDER BY "custId"
+),
+days_streaks AS (
   SELECT 
-    custId,
-    group_transactionDate,
-    COUNT(group_transactionDate) AS grp_cnt
-  FROM ranked_data
+    "custId",
+    "DateDifferenceGroup",
+    COUNT(1) AS "streak"
+  FROM "date_diff_group"
   GROUP BY 
-    custId, 
-    group_transactionDate
-) x
-GROUP BY 
-  custId;
+    "custId",
+    "DateDifferenceGroup"
+),
+fun_analysis AS (
+  SELECT 
+    "custId",
+    MAX("streak") AS "longest_streak"
+  FROM
+    "days_streaks"
+  GROUP BY
+    "custId"
+)
+SELECT * FROM "fun_analysis" 
+WHERE "custId" = 23938; 
 
 
+-- Favorite Product for Customer_Id
+-- ================================
 WITH ranked_products AS (
   SELECT
     trans_id,

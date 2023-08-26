@@ -9,18 +9,18 @@ RUN apt-get update && apt-get install -y wget vim cron
 RUN echo "alias ll='ls -lrt'" >> ~/.bashrc
 
 WORKDIR /opt/
-COPY keep_alive.py /opt/keep_alive.py
+# COPY keep_alive.py /opt/keep_alive.py
 COPY main.py /opt/main.py
-COPY postgresql-42.5.2.jar /opt/postgresql-42.5.2.jar
-RUN chmod +x /opt/keep_alive.py
+# COPY postgresql-42.5.2.jar /opt/postgresql-42.5.2.jar
+# RUN chmod +x /opt/keep_alive.py
 RUN chmod +x /opt/main.py
-RUN chmod 777 /opt/postgresql-42.5.2.jar
+# RUN chmod 777 /opt/postgresql-42.5.2.jar
 
 RUN pip install poetry
 COPY pyproject.toml /opt/pyproject.toml
 COPY poetry.lock /opt/poetry.lock
 RUN poetry install
 
-COPY data /opt/data
+# COPY data /opt/data
 
 CMD ["python", "/opt/keep_alive.py"]

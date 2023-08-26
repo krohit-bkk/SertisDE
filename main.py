@@ -1,14 +1,9 @@
 """Entry point for the ETL application
 # Start network
 docker network create my_network
+
 # Start Spark (master, worker) & PostgreSQL
-  docker compose up -d spark spark-worker-1 postgres-db
-
-RUN curl https://repo1.maven.org/maven2/com/amazonaws/aws-java-sdk-bundle/1.11.704/aws-java-sdk-bundle-1.11.704.jar --output /opt/bitnami/spark/jars/aws-java-sdk-bundle-1.11.704.jar
-
-docker exec -it spark ls /opt/bitnami/spark/jars/postgresql-42.5.2.jar
-docker exec -it spark-worker-1 ls /opt/bitnami/spark/jars/postgresql-42.5.2.jar
-docker exec -it etl /opt/bitnami/spark/jars/postgresql-42.5.2.jar
+docker compose down --rmi all && docker compose up -d spark spark-worker-1 postgres-db
 
 docker rm $(docker ps -a -q --filter "name=sertisetl-etl-run") && docker image rm --force sertisetl-etl
 docker compose down --rmi all
@@ -65,8 +60,7 @@ def get_spark_session():
           .config("spark.jars", "/opt/bitnami/spark/jars/postgresql-42.5.2.jar") \
           .getOrCreate()
   
-  
-  spark.sparkContext.setLogLevel("INFO")
+  spark.sparkContext.setLogLevel("WARN")
   return spark 
 
 
@@ -143,7 +137,15 @@ def get_favourite_product(df):
     )
 
   # Select the desired columns
-  result_df = cust_prod_rank.select("custId", "productSold").where(col("rnk") == 1)
+  result_df = cust_prod_rank.select(
+      "custId", 
+      "productSold"
+    ).where(
+      col("rnk") == 1
+    ).withColumnRenamed(
+      "productSold",
+      "favourite_product"
+    )
 
   return result_df
 
@@ -163,7 +165,7 @@ def get_longest_streak(df):
       col("dateDiff") - row_number().over(window_spec_cust)
     )
   
-  ranked_data.filter(col("custId") == "23262").show(40, False)
+  # ranked_data.filter(col("custId") == "23262").show(40, False)
   
   streak_data = ranked_data.groupBy(
       "custId", 
@@ -173,7 +175,7 @@ def get_longest_streak(df):
     ).groupBy("custId").agg(
       max(col("streaks")).alias("longest_streak")
     )
-  streak_data.filter(col("custId") == "23262").show(40, False)
+  # streak_data.filter(col("custId") == "23262").show(40, False)
   return streak_data
 
 # Wrapper method to encapsulate ETL
@@ -189,11 +191,11 @@ def process_etl(source_path, database_name, table_name, mode):
   # Write to PostgreSQL
   write_to_postgres(df1, database_name, table_name, mode)
   print(f">>>> Dataframe written [SaveMode: {mode}] successfully to PostgreSQL!\n")
-  print(f"\n\n>>>> Attempting to read from PostgreSQL...\n")
 
-  df2 = read_from_postgres(database_name, table_name)
+  # print(f"\n\n>>>> Attempting to read from PostgreSQL...\n")
+  # df2 = read_from_postgres(database_name, table_name)
   # df2.show()
-  print(f">>>> Dataframe read successfully from PostgreSQL!\n")
+  # print(f">>>> Dataframe read successfully from PostgreSQL!\n")
 
   favourite_product_df = get_favourite_product(df1)
   longest_streak_df = get_longest_streak(df1)
@@ -216,15 +218,15 @@ def process_etl(source_path, database_name, table_name, mode):
   final_df.orderBy(col("longest_streak").desc()).show(50, False)
 
   # Unit testing - kind of...
-  cust_rec=final_df.filter(col("customer_id") == "0023938").select("productSold", "longest_streak").limit(1).collect()
-  favourite_product=cust_rec[0][0]
-  longest_streak=cust_rec[0][1]
+  cust_record=final_df.filter(col("customer_id") == "0023938").select("favourite_product", "longest_streak").limit(1).collect()
+  favorite_product=cust_record[0][0]
+  longest_streak=cust_record[0][1]
 
-  assert favourite_product == "PURA250", f"Favorite product is PURA250; found[{favourite_product}]"
-  print("\n\n>>>> Favorite Product is VALID!\n")
+  assert favorite_product == "PURA250", f"Favorite product is PURA250; found[{favorite_product}]"
+  print("\n>>>> Favorite Product is VALID!\n")
 
   assert longest_streak == 2, f"Longest streak is 2; found[{longest_streak}]"
-  print("\n\n>>>> Streak is VALID!\n")
+  print("\n>>>> Streak is VALID!")
 
   write_to_postgres(final_df, database_name, "customers", mode)
 
