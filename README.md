@@ -1,4 +1,4 @@
-# Sertis DE
+# Sertis DE take-home test
 
 ## Overview
 
