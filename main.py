@@ -84,13 +84,14 @@ def read_from_postgres(db_name, table_name):
   # Read data from PostgreSQL table into a DataFrame
   spark = get_spark_session()
   df = spark.read \
-    .format("jdbc") \
-    .option("url", database_url) \
-    .option("driver", "org.postgresql.Driver") \
-    .option("dbtable", f"{table_name}") \
-    .option("user", "sertis") \
-    .option("password", "password") \
-    .load()
+      .format("jdbc") \
+      .option("url", database_url) \
+      .option("driver", "org.postgresql.Driver") \
+      .option("dbtable", f"{table_name}") \
+      .option("user", "sertis") \
+      .option("password", "password") \
+      .load()
+  
   return df
 
 
