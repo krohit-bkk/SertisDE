@@ -11,12 +11,14 @@ docker exec -it spark ls /opt/bitnami/spark/jars/postgresql-42.5.2.jar
 docker exec -it spark-worker-1 ls /opt/bitnami/spark/jars/postgresql-42.5.2.jar
 docker exec -it etl /opt/bitnami/spark/jars/postgresql-42.5.2.jar
 
+docker exec -it spark-worker-1 pyspark --master=spark://spark:7077 --jars //opt/bitnami/spark/jars/postgresql-42.5.2.jar
+
 docker rm $(docker ps -a -q --filter "name=sertisetl-etl-run") && docker image rm --force sertisetl-etl
 docker compose down --rmi all
 docker compose up -d spark spark-worker-1 postgres-db
 docker ps -a
 
-docker rm $(docker ps -a -q --filter "name=sertisetl-etl-run") && docker image rm --force sertisetl-etl && \
+docker rm --force $(docker ps -a -q --filter "name=sertisetl-etl-run") && docker image rm --force sertisetl-etl && \
 docker compose run etl poetry run python main.py --source /opt/data/transaction.csv --database prod_db --table transaction --save_mode overwrite
 
 
@@ -79,7 +81,7 @@ def close_spark_session():
 def read_from_postgres(db_name, table_name):
   # Define PostgreSQL database connection properties
   database_url = f"{postgres_base_url}/{db_name}"
-  database_properties = get_postgres_properties()
+  # database_properties = get_postgres_properties()
   
   # Read data from PostgreSQL table into a DataFrame
   spark = get_spark_session()
@@ -99,7 +101,7 @@ def read_from_postgres(db_name, table_name):
 def write_to_postgres(df, db_name, table_name, mode):
   # Create database if not exists
   database_url = f"{postgres_base_url}/{db_name}"
-  database_properties = get_postgres_properties()
+  # database_properties = get_postgres_properties()
   
   # Write DataFrame to PostgreSQL table
   df.write \
@@ -216,10 +218,10 @@ def process_etl(source_path, database_name, table_name, mode):
   favourite_product=cust_rec[0][0]
   longest_streak=cust_rec[0][1]
 
-  assert favourite_product == "PURA250", f"Favorite product is PURA250; found[{favourite_product}]"
+  assert favourite_product == "PURA250", f"Valid favorite product is PURA250; found [{favourite_product}]"
   print("\n>>>> Favorite Product is VALID!")
 
-  assert longest_streak == 2, f"Longest streak is 2; found[{longest_streak}]"
+  assert longest_streak == 2, f"Valid longest streak is 2; found [{longest_streak}]"
   print("\n>>>> Streak is VALID!")
 
   # Write ETL output to PostreSQL
@@ -227,6 +229,7 @@ def process_etl(source_path, database_name, table_name, mode):
 
 
 def main():
+    # Validate arguments
     parser = argparse.ArgumentParser(description="Process data.")
     parser.add_argument("--source", required=True, help="Path to the source file")
     parser.add_argument("--database", required=True, help="Database name for inserting data")

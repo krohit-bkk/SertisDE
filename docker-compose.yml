@@ -17,7 +17,6 @@ services:
       - '18080:8080'
     networks:
       - my_network
-
   spark-worker-1:
     image: docker.io/bitnami/spark:3.1.2
     container_name: spark-worker-1
@@ -47,7 +46,6 @@ services:
       - "5432:5432"
     networks:
       - my_network
-
   etl:
     build:
       context: .
@@ -63,4 +61,3 @@ services:
 networks:
   my_network:
     external: true
- 
