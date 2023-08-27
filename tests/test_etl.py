@@ -6,9 +6,9 @@ from etl_utils import *
 
 # Configure logging
 logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s [%(levelname)s] - %(message)s",
-    datefmt="%Y-%m-%d %H:%M:%S"
+  level=logging.INFO,
+  format="%(asctime)s [%(levelname)s] - %(message)s",
+  datefmt="%Y-%m-%d %H:%M:%S"
 )
 
 class TestETL(unittest.TestCase):
