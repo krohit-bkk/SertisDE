@@ -5,15 +5,18 @@ ENV JAVA_HOME /usr/local/openjdk-8
 RUN update-alternatives --install /usr/bin/java java /usr/local/openjdk-8/bin/java 1
 
 RUN apt-get update && apt-get install -y wget vim cron
-
 RUN echo "alias ll='ls -lrt'" >> ~/.bashrc
 
 WORKDIR /opt/
+
 COPY keep_alive.py /opt/keep_alive.py
 COPY main.py /opt/main.py
+COPY etl_utils.py /opt/etl_utils.py
 COPY postgresql-42.5.2.jar /opt/postgresql-42.5.2.jar
+
 RUN chmod +x /opt/keep_alive.py
 RUN chmod +x /opt/main.py
+RUN chmod +x /opt/etl_utils.py
 RUN chmod 777 /opt/postgresql-42.5.2.jar
 
 RUN pip install poetry
@@ -22,5 +25,7 @@ COPY poetry.lock /opt/poetry.lock
 RUN poetry install
 
 COPY data /opt/data
+COPY tests /opt/tests
+RUN chmod -R 777 /opt/tests/
 
 CMD ["python", "/opt/keep_alive.py"]
