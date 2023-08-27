@@ -20,7 +20,7 @@ class TestETL(unittest.TestCase):
 
   def read_csv_data(self):
     input_path = "/opt/data/transaction.csv"
-    df = read_psv(self.spark, input_path).withColumnRenamed("custId", "customer_id")
+    df = read_transactions(self.spark, input_path).withColumnRenamed("custId", "customer_id")
     df.cache()
     return df
 

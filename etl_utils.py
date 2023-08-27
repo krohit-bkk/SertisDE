@@ -40,16 +40,31 @@ def close_spark_session():
    get_spark_session().stop()
 
 
-# Read PSV as dataframe
-def read_psv(spark, source_path):
+# Read transactions (shared) as dataframe
+def read_transactions(spark, source_path):
   # return spark.read.csv(source_path, sep='|', header=True, inferSchema=True)
-  return spark \
+  df = spark \
     .read \
-    .csv(source_path, sep='|', header=True) \
-    .withColumn(
-      "unitsSold", 
-      col("unitsSold").cast("integer")
-    )
+    .csv(source_path, sep='|', header=True)
+  
+  cols = df.columns
+  if "unitsSold" in cols:
+    df = df.withColumn(
+        "unitsSold", 
+        col("unitsSold").cast("integer")
+      )
+  
+  return df
+
+
+# Read CSV as dataframe
+def read_csv_as_dataframe(spark, source_path, header=False, delimiter=",", infer_schema=True):
+  df = spark.read.format("csv") \
+      .option("delimiter", delimiter) \
+      .option("header", header) \
+      .option("inferSchema", infer_schema) \
+      .load(source_path)
+  return df
 
 
 # Read from PostgreSQL
@@ -174,7 +189,7 @@ def process_etl(source_path, database_name, table_name, mode):
   
   # Read the input file
   # df = spark.read.csv(source_path, sep='|', header=True, inferSchema=True)
-  df = read_psv(spark, source_path).withColumnRenamed("custId", "customer_id")
+  df = read_transactions(spark, source_path).withColumnRenamed("custId", "customer_id")
   # df.show()
   
   # Write to PostgreSQL
