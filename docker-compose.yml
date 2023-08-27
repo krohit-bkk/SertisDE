@@ -38,9 +38,9 @@ services:
     image: postgres:13
     container_name: postgres-db
     environment:
-      - POSTGRES_USER=sertis
+      - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=password
-      - POSTGRES_DB=prod_db
+      - POSTGRES_DB=warehouse
       - POSTGRES_INITDB_ARGS=--auth-host=md5
     ports:
       - "5432:5432"

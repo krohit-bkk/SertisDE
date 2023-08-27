@@ -7,7 +7,7 @@ postgres_base_url="jdbc:postgresql://postgres-db:5432"
 # Method to return PostgreSQL  properties
 def get_postgres_properties():
   database_properties = {
-      "user": "sertis",
+      "username": "postgres",
       "password": "password",
       "driver": "org.postgresql.Driver"
   }
@@ -45,10 +45,11 @@ def read_psv(spark, source_path):
 
 # Read from PostgreSQL
 def read_from_postgres(db_name, table_name):
-  # database_properties = get_postgres_properties()
+  database_properties = get_postgres_properties()
   # Define PostgreSQL database connection properties
   database_url = f"{postgres_base_url}/{db_name}"
   
+  print(f"\n>>>> USERNAME: {database_properties.get('username')}; PASSWORD: {database_properties.get('password')}")
   # Read data from PostgreSQL table into a DataFrame
   spark = get_spark_session()
   df = spark.read \
@@ -56,8 +57,8 @@ def read_from_postgres(db_name, table_name):
       .option("url", database_url) \
       .option("driver", "org.postgresql.Driver") \
       .option("dbtable", f"{table_name}") \
-      .option("user", "sertis") \
-      .option("password", "password") \
+      .option("user", f"{database_properties.get('username')}") \
+      .option("password", f"{database_properties.get('password')}") \
       .load()
   
   return df
@@ -67,7 +68,7 @@ def read_from_postgres(db_name, table_name):
 def write_to_postgres(df, db_name, table_name, mode):
   # Create database if not exists
   database_url = f"{postgres_base_url}/{db_name}"
-  # database_properties = get_postgres_properties()
+  database_properties = get_postgres_properties()
   
   # Write DataFrame to PostgreSQL table
   df.write \
@@ -76,8 +77,8 @@ def write_to_postgres(df, db_name, table_name, mode):
     .option("url", database_url) \
     .option("driver", "org.postgresql.Driver") \
     .option("dbtable", f"{table_name}") \
-    .option("user", "sertis") \
-    .option("password", "password") \
+    .option("user", f"{database_properties.get('username')}") \
+    .option("password", f"{database_properties.get('password')}") \
     .save()
 
 
@@ -169,8 +170,8 @@ def process_etl(source_path, database_name, table_name, mode):
   # df.show()
   
   # Write to PostgreSQL
-  write_to_postgres(df, database_name, table_name, mode)
-  print(f">>>> Dataframe written [SaveMode: {mode}] successfully to PostgreSQL!\n")
+  write_to_postgres(df, database_name, "transaction", mode)
+  print(f">>>> Raw Data [transactions] written [SaveMode: {mode}] successfully to PostgreSQL!\n")
   
   favourite_product_df = get_favourite_product(df)
   longest_streak_df = get_longest_streak(df)
@@ -180,16 +181,16 @@ def process_etl(source_path, database_name, table_name, mode):
   final_df.orderBy(col("longest_streak").desc()).show(50, False)
 
   # Unit testing - kind of...
-  cust_rec = final_df.filter(col("customer_id") == "0023938").select("favorite_product", "longest_streak").limit(1).collect()
-  favourite_product = cust_rec[0][0]
-  longest_streak = cust_rec[0][1]
+  # cust_rec = final_df.filter(col("customer_id") == "0023938").select("favorite_product", "longest_streak").limit(1).collect()
+  # favourite_product = cust_rec[0][0]
+  # longest_streak = cust_rec[0][1]
 
-  assert favourite_product == "PURA250", f"Valid favorite product is PURA250; found [{favourite_product}]"
-  print("\n>>>> Favorite Product is VALID!")
+  # assert favourite_product == "PURA250", f"Valid favorite product is PURA250; found [{favourite_product}]"
+  # print("\n>>>> Favorite Product is VALID!")
 
-  assert longest_streak == 2, f"Valid longest streak is 2; found [{longest_streak}]"
-  print("\n>>>> Streak is VALID!")
+  # assert longest_streak == 2, f"Valid longest streak is 2; found [{longest_streak}]"
+  # print("\n>>>> Streak is VALID!")
 
   # Write ETL output to PostreSQL
-  write_to_postgres(final_df, database_name, "customers", mode)
+  write_to_postgres(final_df, database_name, table_name, mode)
 

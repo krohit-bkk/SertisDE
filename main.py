@@ -20,12 +20,12 @@ docker ps -a
 
 # RUN ETL
 docker rm --force $(docker ps -a -q --filter "name=sertisetl-etl-run") && docker image rm --force sertisetl-etl && \
-docker compose run etl poetry run python main.py --source /opt/data/transaction.csv --database prod_db --table transaction --save_mode overwrite
+docker compose run etl poetry run python main.py --source /opt/data/transaction.csv --database warehouse --table customers --save_mode overwrite
 
 # TEST ETL
 docker rm --force $(docker ps -a -q --filter "name=sertisetl-etl-run") && docker image rm --force sertisetl-etl && \
 docker compose run etl poetry run python -m unittest discover -s /opt/tests
-docker-compose run etl poetry run python -m unittest discover -s /opt/tests
+
 
 
 # Start ETL container
