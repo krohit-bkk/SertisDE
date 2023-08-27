@@ -48,9 +48,17 @@ docker-compose run etl poetry run python main.py \
 """
 
 import argparse
+import logging
 from etl_utils import close_spark_session, process_etl
 
 def main():
+    # Configure logging
+    logging.basicConfig(
+        level=logging.INFO,  # Set the desired logging level
+        format="%(asctime)s [%(levelname)s] - %(message)s",
+        datefmt="%Y-%m-%d %H:%M:%S"
+    )
+    
     # Validate arguments
     parser = argparse.ArgumentParser(description="Process data.")
     parser.add_argument("--source", required=True, help="Path to the source file")
@@ -73,16 +81,16 @@ def main():
     msg = "[default]" if default_save_mode else "[user provided]"
 
     # Your code to process data goes here
-    print()
-    print(f">>>> Processing data from: {source_path}")
-    print(f">>>> Database: {database_name}")
-    print(f">>>> Table: {table_name}")
-    print(f">>>> Save mode: {save_mode} {msg}\n")
+    logging.info()
+    logging.info(f">>>> Processing data from: {source_path}")
+    logging.info(f">>>> Database: {database_name}")
+    logging.info(f">>>> Table: {table_name}")
+    logging.info(f">>>> Save mode: {save_mode} {msg}\n")
     
     try: 
       # Process ETL
       process_etl(source_path, database_name, table_name, save_mode)
-      print("\n\n>>>> ETL SUCCESSFUL!\n")
+      logging.info("\n\n>>>> ETL SUCCESSFUL!\n")
 
     finally:
       # Close SparkSession if still open

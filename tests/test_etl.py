@@ -1,6 +1,15 @@
 import unittest
+import logging
 from pyspark.sql import SparkSession
+
 from etl_utils import *
+
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] - %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S"
+)
 
 class TestETL(unittest.TestCase):
   def setUp(self):
@@ -51,11 +60,11 @@ class TestETL(unittest.TestCase):
 
       with self.subTest(cust_id):
         assert prod_id == fav_prod_dict.get(cust_id), f"Favorite product  test failed for [{cust_id}]. Expected [{fav_prod_dict.get(cust_id)}], actual: [{prod_id}]"
-        print(f">>>> Favorite Product [{cust_id}, {prod_id}] is VALID!")
+        logging.info(f">>>> Favorite Product [{cust_id}, {prod_id}] is VALID!")
 
       with self.subTest(cust_id):
         assert streak == streak_dict.get(cust_id), f"Favorite product  test failed for [{cust_id}]. Expected [{expected_longest_streak}], actual: [{streak}]"
-        print(f">>>> Streak [{cust_id}, {streak}] is VALID!")
+        logging.info(f">>>> Streak [{cust_id}, {streak}] is VALID!")
 
   # Unit test favorite product 
   @unittest.skip("Skipping this test for now as we have test_favorite_product_and_longest_streak()")
@@ -133,11 +142,11 @@ class TestETL(unittest.TestCase):
 
     with self.subTest():
       assert favourite_product == expected_fav_product, f"Favorite product  test failed for [{cust_id}]. Expected [{expected_fav_product}], actual: [{favourite_product}]"
-      print(">>>> Favorite Product is VALID!")
+      logging.info(">>>> Favorite Product is VALID!")
 
     with self.subTest():
       assert longest_streak == expected_longest_streak, f"Favorite product  test failed for [{cust_id}]. Expected [{expected_longest_streak}], actual: [{longest_streak}]"
-      print(">>>> Streak is VALID!")
+      logging.info(">>>> Streak is VALID!")
     
 
 if __name__ == "__main__":
