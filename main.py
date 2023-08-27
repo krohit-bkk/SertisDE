@@ -67,7 +67,7 @@ def main():
   try: 
     # Process ETL
     process_etl(source_path, database_name, table_name, save_mode)
-    logging.info("\n\n>>>> ETL SUCCESSFUL!\n")
+    logging.info(">>>> ETL SUCCESSFUL!\n")
 
   finally:
     # Close SparkSession if still open

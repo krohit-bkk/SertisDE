@@ -58,7 +58,6 @@ def read_from_postgres(db_name, table_name):
   database_properties = get_postgres_properties()
   database_url = f"{postgres_base_url}/{db_name}"
   
-  print(f"\n>>>> USERNAME: {database_properties.get('username')}; PASSWORD: {database_properties.get('password')}")
   # Read data from PostgreSQL table into a DataFrame
   spark = get_spark_session()
   df = spark.read \
