@@ -5,9 +5,9 @@ from pyspark.sql.functions import col, max, sum, row_number, dense_rank, coalesc
 
 # Configure logging
 logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s [%(levelname)s] - %(message)s",
-    datefmt="%Y-%m-%d %H:%M:%S"
+  level=logging.INFO,
+  format="%(asctime)s [%(levelname)s] - %(message)s",
+  datefmt="%Y-%m-%d %H:%M:%S"
 )
 
 # PostgreSQL URL
@@ -16,9 +16,9 @@ postgres_base_url="jdbc:postgresql://postgres-db:5432"
 # Method to return PostgreSQL  properties
 def get_postgres_properties():
   database_properties = {
-      "username": "postgres",
-      "password": "password",
-      "driver": "org.postgresql.Driver"
+    "username": "postgres",
+    "password": "password",
+    "driver": "org.postgresql.Driver"
   }
   return database_properties
 
@@ -62,13 +62,13 @@ def read_from_postgres(db_name, table_name):
   # Read data from PostgreSQL table into a DataFrame
   spark = get_spark_session()
   df = spark.read \
-      .format("jdbc") \
-      .option("url", database_url) \
-      .option("driver", "org.postgresql.Driver") \
-      .option("dbtable", f"{table_name}") \
-      .option("user", f"{database_properties.get('username')}") \
-      .option("password", f"{database_properties.get('password')}") \
-      .load()
+    .format("jdbc") \
+    .option("url", database_url) \
+    .option("driver", "org.postgresql.Driver") \
+    .option("dbtable", f"{table_name}") \
+    .option("user", f"{database_properties.get('username')}") \
+    .option("password", f"{database_properties.get('password')}") \
+    .load()
   
   return df
 
