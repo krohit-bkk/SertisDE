@@ -142,11 +142,11 @@ class TestETL(unittest.TestCase):
 
     with self.subTest():
       assert favourite_product == expected_fav_product, f"Favorite product  test failed for [{cust_id}]. Expected [{expected_fav_product}], actual: [{favourite_product}]"
-      logging.info(">>>> Favorite Product is VALID!")
+      logging.info(f">>>> Customer ID [{cust_id}] : Favorite Product is VALID!")
 
     with self.subTest():
       assert longest_streak == expected_longest_streak, f"Favorite product  test failed for [{cust_id}]. Expected [{expected_longest_streak}], actual: [{longest_streak}]"
-      logging.info(">>>> Streak is VALID!")
+      logging.info(f">>>> Customer ID [{cust_id}] : Streak is VALID!")
     
 
 if __name__ == "__main__":

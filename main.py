@@ -3,7 +3,7 @@
 docker network create my_network
 
 # Start Spark (master, worker) & PostgreSQL
-docker compose down --rmi all && 
+docker compose down --rmi all && \
 docker compose up -d spark spark-worker-1 postgres-db
 
 # RUN ETL
@@ -14,7 +14,7 @@ docker compose run etl poetry run python main.py --source /opt/data/transaction.
 docker rm --force $(docker ps -a -q --filter "name=sertisetl-etl-run") && docker image rm --force sertisetl-etl && \
 docker compose run etl poetry run python -m unittest discover -s /opt/tests
 
-Longest streak -> http://sqlfiddle.com/#!18/c5f72/6
+Longest streak logic -> http://sqlfiddle.com/#!18/c5f72/6
 
 Sample usage:
 docker exec -it etl poetry run python main.py
