@@ -3,20 +3,8 @@
 docker network create my_network
 
 # Start Spark (master, worker) & PostgreSQL
-docker compose down --rmi all && docker compose up -d spark spark-worker-1 postgres-db
-
-RUN curl https://repo1.maven.org/maven2/com/amazonaws/aws-java-sdk-bundle/1.11.704/aws-java-sdk-bundle-1.11.704.jar --output /opt/bitnami/spark/jars/aws-java-sdk-bundle-1.11.704.jar
-
-docker exec -it spark ls /opt/bitnami/spark/jars/postgresql-42.5.2.jar
-docker exec -it spark-worker-1 ls /opt/bitnami/spark/jars/postgresql-42.5.2.jar
-docker exec -it etl /opt/bitnami/spark/jars/postgresql-42.5.2.jar
-
-docker exec -it spark-worker-1 pyspark --master=spark://spark:7077 --jars //opt/bitnami/spark/jars/postgresql-42.5.2.jar
-
-docker rm $(docker ps -a -q --filter "name=sertisetl-etl-run") && docker image rm --force sertisetl-etl
-docker compose down --rmi all
+docker compose down --rmi all && 
 docker compose up -d spark spark-worker-1 postgres-db
-docker ps -a
 
 # RUN ETL
 docker rm --force $(docker ps -a -q --filter "name=sertisetl-etl-run") && docker image rm --force sertisetl-etl && \
@@ -25,17 +13,6 @@ docker compose run etl poetry run python main.py --source /opt/data/transaction.
 # TEST ETL
 docker rm --force $(docker ps -a -q --filter "name=sertisetl-etl-run") && docker image rm --force sertisetl-etl && \
 docker compose run etl poetry run python -m unittest discover -s /opt/tests
-
-
-
-# Start ETL container
-docker compose run etl poetry run python main.py --source /opt/data/transaction.csv --database prod_db --table transaction --save_mode overwrite
-
-# Debug on running ETL container
-docker exec -it etl poetry run python main.py
-
-# Debug from inside ETL container
-poetry run python main.py
 
 Longest streak -> http://sqlfiddle.com/#!18/c5f72/6
 
