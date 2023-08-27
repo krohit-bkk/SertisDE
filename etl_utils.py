@@ -94,7 +94,7 @@ def write_to_postgres(df, db_name, table_name, mode):
 # Get favourite_product
 def get_favourite_product(df):
   # Create ranked_products DataFrame
-  # total_cust_prod_sold := UnitsSold per CustId per ProductSold
+  # LOGIC --> total_cust_prod_sold := UnitsSold per CustId per ProductSold
   window_spec_cust_prod = Window().partitionBy("customer_id", "productSold").orderBy()
   ranked_products = df.withColumn(
       "total_cust_prod_sold", 
@@ -104,7 +104,7 @@ def get_favourite_product(df):
     )
 
   # Create cust_prod_rank DataFrame
-  # rnk := Basis per ProductSold per CustId
+  # LOGIC --> rnk := Basis per ProductSold per CustId
   window_spec_cust = Window().partitionBy("customer_id").orderBy(col("total_cust_prod_sold").desc())
   cust_prod_rank = ranked_products.select(
       "customer_id", 

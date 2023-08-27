@@ -43,26 +43,26 @@ WHERE "custId" = 23938;
 -- ================================
 WITH ranked_products AS (
   SELECT
-    trans_id,
-    custId,
-    trans_date,
-    productSold,
-    unitsSold,
-    SUM(unitsSold) OVER (PARTITION BY custId, productSold) AS total_cust_prod_sold
-  FROM transactions
+    "trans_id",
+    "custId",
+    "trans_date",
+    "productSold",
+    "unitsSold",
+    SUM("unitsSold") OVER (PARTITION BY "custId", "productSold") AS "total_cust_prod_sold"
+  FROM "transactions"
 ),
 cust_prod_rank AS (
 SELECT 
-  custId AS customer_id,
-  productSold,
-  total_cust_prod_sold,
-  DENSE_RANK() OVER(PARTITION BY custId ORDER BY total_cust_prod_sold DESC) as rnk
+  "custId" AS "customer_id",
+  "productSold",
+  "total_cust_prod_sold",
+  DENSE_RANK() OVER(PARTITION BY "custId" ORDER BY "total_cust_prod_sold" DESC) as "rnk"
 FROM 
-  ranked_products
+  "ranked_products"
 )
 SELECT
-  custId, productSold AS favourite_product
+  "custId", "productSold" AS "favourite_product"
 FROM 
-  cust_prod_rank 
+  "cust_prod_rank" 
 WHERE 
-  rnk = 1;
+  "rnk" = 1;
