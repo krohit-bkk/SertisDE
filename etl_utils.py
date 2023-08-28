@@ -11,7 +11,7 @@ logging.basicConfig(
 )
 
 # PostgreSQL URL
-postgres_base_url="jdbc:postgresql://postgres-db:5432"
+postgres_base_url="jdbc:postgresql://db:5432"
 
 # Method to return PostgreSQL  properties
 def get_postgres_properties():

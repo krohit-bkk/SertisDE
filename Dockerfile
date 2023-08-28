@@ -12,7 +12,8 @@ WORKDIR /opt/
 COPY keep_alive.py /opt/keep_alive.py
 COPY main.py /opt/main.py
 COPY etl_utils.py /opt/etl_utils.py
-COPY postgresql-42.5.2.jar /opt/postgresql-42.5.2.jar
+RUN wget https://jdbc.postgresql.org/download/postgresql-42.5.2.jar
+# COPY postgresql-42.5.2.jar /opt/postgresql-42.5.2.jar
 
 RUN chmod +x /opt/keep_alive.py
 RUN chmod +x /opt/main.py

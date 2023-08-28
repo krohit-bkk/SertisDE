@@ -4,7 +4,9 @@ services:
     image: 'docker.io/bitnami/spark:3.1.2'
     container_name: spark
     volumes:
-      - ./data:/opt/data
+      - type: bind
+        source: ./data
+        target: /opt/data
     environment:
       - SPARK_MODE=master
       - SPARK_RPC_AUTHENTICATION_ENABLED=no
@@ -21,7 +23,9 @@ services:
     image: docker.io/bitnami/spark:3.1.2
     container_name: spark-worker-1
     volumes:
-      - ./data:/opt/data
+      - type: bind
+        source: ./data
+        target: /opt/data
     environment:
       - SPARK_MODE=worker
       - SPARK_MASTER_URL=spark://spark:7077
@@ -34,9 +38,9 @@ services:
     networks:
       - my_network
 
-  postgres-db:
+  db:
     image: postgres:13
-    container_name: postgres-db
+    container_name: db
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=password
@@ -53,8 +57,6 @@ services:
     container_name: etl
     environment:
       - PYTHONUNBUFFERED=1
-    volumes:
-      - ./postgresql-42.5.2.jar:/opt/postgresql-42.5.2.jar
     networks:
       - my_network
 

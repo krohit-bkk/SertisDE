@@ -4,13 +4,19 @@ docker network create my_network
 
 # Start Spark (master, worker) & PostgreSQL
 docker compose down --rmi all && \
-docker compose up -d spark spark-worker-1 postgres-db
+docker compose up -d spark spark-worker-1 db
 
 # RUN ETL
-docker rm --force $(docker ps -a -q --filter "name=sertisetl-etl-run") && docker image rm --force sertisetl-etl && \
 docker compose run etl poetry run python main.py --source /opt/data/transaction.csv --database warehouse --table customers --save_mode overwrite
 
 # TEST ETL
+docker compose run etl poetry run python -m unittest discover -s /opt/tests
+
+# Clean ETL contains from previous runs and run the ETL
+docker rm --force $(docker ps -a -q --filter "name=sertisetl-etl-run") && docker image rm --force sertisetl-etl && \
+docker compose run etl poetry run python main.py --source /opt/data/transaction.csv --database warehouse --table customers --save_mode overwrite
+
+# Clean ETL contains from previous runs and run the ETL test
 docker rm --force $(docker ps -a -q --filter "name=sertisetl-etl-run") && docker image rm --force sertisetl-etl && \
 docker compose run etl poetry run python -m unittest discover -s /opt/tests
 
