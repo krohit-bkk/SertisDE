@@ -29,4 +29,4 @@ COPY data /opt/data
 COPY tests /opt/tests
 RUN chmod -R 777 /opt/tests/
 
-CMD ["python", "/opt/keep_alive.py"]
+# CMD ["python", "/opt/keep_alive.py"]
