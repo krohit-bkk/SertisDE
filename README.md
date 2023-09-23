@@ -57,6 +57,9 @@ This task does not have to be implemented, but we would like you to propose a so
 
 **Submission**: Explanation of the proposed solution, chosen tools/frameworks, justification on why you chose them, and any other supporting documentation in a PDF format. Feel free to make your own assumptions (e.g. feel free to use any services in the chosen cloud platform) and be as creative as you want with your answer. Remember to cover the requirements i.e. how the data is moved to the cloud, how the aggregations are calculated in your proposed solution and how scalability is achieved.
 
+
+**Result:** ETL architecture in traditional Hadoop, Azure and Kubernetes setups: [my solution](https://drive.google.com/file/d/1ua57egiCc56zQCgQK6qPf9tSTBH-bHj0/view?usp=sharing)
+
 ## Verifying ETL pipeline
 
 As our pipeline is dockerized, it is easy to execute and verify the output. Assuming the pipeline is called `etl` in `docker-compose`, we can use `docker-compose` to run the pipeline:
