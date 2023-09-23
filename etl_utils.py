@@ -193,12 +193,14 @@ def process_etl(source_path, database_name, table_name, mode):
   # df.show()
   
   # Write to PostgreSQL
-  write_to_postgres(df, database_name, "transaction", mode)
+  # write_to_postgres(df, database_name, "transaction", mode)
   logging.info(f">>>> Raw Data [transactions] written [SaveMode: {mode}] successfully to PostgreSQL!\n")
   
   # Actual ETL processing
   favourite_product_df = get_favourite_product(df)
   longest_streak_df = get_longest_streak(df)
+  favourite_product_df.cache()
+  longest_streak_df.caxhe()
   final_df = get_etl_output(favourite_product_df, longest_streak_df)
 
   # Display the output of ETL
